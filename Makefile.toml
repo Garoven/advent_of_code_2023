@@ -1,6 +1,6 @@
 [tasks.run]
 command = "cargo"
-args = ["run", "--", "-i", "input.txt", "-d" ,"3"]
+args = ["run", "--", "-i", "input.txt", "-d", "${@}"]
 
 [tasks.dev]
 install_crate = "cargo-watch"
