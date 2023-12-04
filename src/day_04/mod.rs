@@ -6,8 +6,10 @@ pub fn part_1(input: impl AsRef<str>) -> u32 {
         .as_ref()
         .lines()
         .filter_map(|l| l.split(':').nth(1))
-        .for_each(|l| {
-            let mut it = l.trim().split('|');
+        .map(|l| l.split('|'))
+        .for_each(|mut it| {
+            win_numbers.clear();
+
             let new_win_numbers = it
                 .next()
                 .expect("Inalid input")
@@ -26,8 +28,6 @@ pub fn part_1(input: impl AsRef<str>) -> u32 {
                 })
                 .count() as u32;
 
-            win_numbers.clear();
-
             sum += 2_u32.pow(count.saturating_sub(1)) * count.clamp(0, 1);
         });
 
@@ -43,9 +43,11 @@ pub fn part_2(input: impl AsRef<str>) -> u32 {
         .as_ref()
         .lines()
         .filter_map(|l| l.split(':').nth(1))
+        .map(|l| l.split('|'))
         .enumerate()
-        .for_each(|(i, l)| {
-            let mut it = l.trim().split('|');
+        .for_each(|(i, mut it)| {
+            win_numbers.clear();
+
             let new_win_numbers = it
                 .next()
                 .expect("Inalid input")
@@ -76,8 +78,6 @@ pub fn part_2(input: impl AsRef<str>) -> u32 {
                 Some(v) => *v += cur_card,
                 None => cards.push(1 + cur_card),
             });
-
-            win_numbers.clear();
 
             sum += cur_card;
         });
