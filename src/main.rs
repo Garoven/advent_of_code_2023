@@ -26,6 +26,7 @@ fn main() -> advent_of_code_2023::Result<()> {
         };
     }
 
+    let ts = std::time::SystemTime::now();
     match args.day {
         1 => print_day!(day_01),
         2 => print_day!(day_02),
@@ -34,6 +35,7 @@ fn main() -> advent_of_code_2023::Result<()> {
         5..=25 => unimplemented!(),
         _ => unreachable!(),
     };
+    println!("Elapsed: {:?}", ts.elapsed());
 
     Ok(())
 }

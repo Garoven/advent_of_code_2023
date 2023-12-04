@@ -1,5 +1,5 @@
 pub fn part_1(input: impl AsRef<str>) -> u32 {
-    let mut win_numbers: Vec<u32> = Vec::with_capacity(64);
+    let mut win_numbers: Vec<u32> = Vec::with_capacity(32);
     let mut sum = 0;
 
     input
@@ -35,8 +35,8 @@ pub fn part_1(input: impl AsRef<str>) -> u32 {
 }
 
 pub fn part_2(input: impl AsRef<str>) -> u32 {
-    let mut win_numbers: Vec<u32> = Vec::new();
-    let mut cards = std::collections::HashMap::<usize, u32>::with_capacity(512);
+    let mut win_numbers: Vec<u32> = Vec::with_capacity(32);
+    let mut cards: Vec<u32> = Vec::with_capacity(256);
     let mut sum = 0;
 
     input
@@ -45,7 +45,6 @@ pub fn part_2(input: impl AsRef<str>) -> u32 {
         .filter_map(|l| l.split(':').nth(1))
         .enumerate()
         .for_each(|(i, l)| {
-            let cur_card = *cards.entry(i).or_insert(1);
             let mut it = l.trim().split('|');
             let new_win_numbers = it
                 .next()
@@ -65,7 +64,18 @@ pub fn part_2(input: impl AsRef<str>) -> u32 {
                 })
                 .count();
 
-            (i + 1..=i + count).for_each(|i| *cards.entry(i).or_insert(1) += cur_card);
+            let cur_card = match cards.get(i) {
+                Some(v) => *v,
+                None => {
+                    cards.push(1);
+                    1
+                }
+            };
+
+            (i + 1..=i + count).for_each(|i| match cards.get_mut(i) {
+                Some(v) => *v += cur_card,
+                None => cards.push(1 + cur_card),
+            });
 
             win_numbers.clear();
 
