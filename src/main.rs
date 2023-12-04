@@ -30,7 +30,8 @@ fn main() -> advent_of_code_2023::Result<()> {
         1 => print_day!(day_01),
         2 => print_day!(day_02),
         3 => print_day!(day_03),
-        4..=25 => unimplemented!(),
+        4 => print_day!(day_04),
+        5..=25 => unimplemented!(),
         _ => unreachable!(),
     };
 
