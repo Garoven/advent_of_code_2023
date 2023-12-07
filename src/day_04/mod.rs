@@ -66,6 +66,15 @@ pub fn part_2(input: impl AsRef<str>) -> u32 {
                 })
                 .count();
 
+            //cards.get(i).map_or_else(
+            //    || {
+            //        cards.push(1);
+            //        1
+            //    },
+            //    |v| *v,
+            //);
+            //
+            #[allow(clippy::option_if_let_else)]
             let cur_card = match cards.get(i) {
                 Some(v) => *v,
                 None => {
@@ -74,6 +83,7 @@ pub fn part_2(input: impl AsRef<str>) -> u32 {
                 }
             };
 
+            #[allow(clippy::option_if_let_else)]
             (i + 1..=i + count).for_each(|i| match cards.get_mut(i) {
                 Some(v) => *v += cur_card,
                 None => cards.push(1 + cur_card),

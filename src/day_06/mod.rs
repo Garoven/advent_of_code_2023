@@ -1,5 +1,5 @@
 fn calc_range(time: f64, distance: f64) -> f64 {
-    let delta = time.powf(2.0) - 4.0 * -distance * -1.0;
+    let delta = time.mul_add(time, -4.0 * -distance * -1.0);
     let x1 = (-time + delta.sqrt()) / -2.0;
     let x2 = (-time - delta.sqrt()) / -2.0;
 
