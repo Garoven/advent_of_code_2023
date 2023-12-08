@@ -14,40 +14,55 @@ enum Types {
     FiveOfKind,
 }
 
-macro_rules! set_type {
-    ($hand:expr, $count: expr) => {
-        $hand = match $hand {
-            Types::HighCard => match $count {
+macro_rules! map_char {
+    ( $( $char:expr ),+ ) => {
+        ($( match $char {
+        'A' => 'D',
+        'K' => 'C',
+        'Q' => 'B',
+        'J' => 'A',
+        'T' => ':',
+        c => c,
+    } ),+)
+    };
+}
+
+fn map_hand<const PART: usize>(line: &str) -> Option<(&str, u32, Types)> {
+    let (hand, bid) = line.split_whitespace().next_tuple()?;
+    let parsed_bid = bid.parse::<u32>().ok()?;
+    let mut hand_type = hand.chars().sorted().dedup_with_count().fold(
+        Types::HighCard,
+        |acc, (count, _)| match acc {
+            Types::HighCard => match count {
                 2 => Types::OnePair,
                 3 => Types::ThreeOfKind,
                 4 => Types::FourOfKind,
                 5 => Types::FiveOfKind,
-                _ => $hand,
+                _ => acc,
             },
-            Types::OnePair => match $count {
+            Types::OnePair => match count {
                 2 => Types::TwoPair,
                 3 => Types::FullHouse,
-                _ => $hand,
+                _ => acc,
             },
             Types::ThreeOfKind => {
-                if $count == 2 {
+                if count == 2 {
                     Types::FullHouse
                 } else {
-                    $hand
+                    acc
                 }
             }
-            hand => hand,
-        }
-    };
-}
+            _ => acc,
+        },
+    );
 
-macro_rules! use_jokers {
-    ($hand:expr, $count: expr) => {
-        if $count != 0 {
-            $hand = match $hand {
+    if PART == PART_TWO {
+        let count = hand.matches('J').count();
+        if count != 0 {
+            hand_type = match hand_type {
                 Types::HighCard => Types::OnePair,
                 Types::OnePair => Types::ThreeOfKind,
-                Types::TwoPair => match $count {
+                Types::TwoPair => match count {
                     1 => Types::FullHouse,
                     2 => Types::FourOfKind,
                     _ => Types::TwoPair,
@@ -58,84 +73,60 @@ macro_rules! use_jokers {
                 Types::FiveOfKind => Types::FiveOfKind,
             }
         };
-    };
+    }
+
+    Some((hand, parsed_bid, hand_type))
 }
 
-fn sort_hands<const PART: usize>(a: &(&str, u32), b: &(&str, u32)) -> std::cmp::Ordering {
+fn sort_hands<const PART: usize>(
+    (a, _, a_type): &(&str, u32, Types),
+    (b, _, b_type): &(&str, u32, Types),
+) -> std::cmp::Ordering {
     use std::cmp::Ordering;
 
-    let mut cards = [
-        'A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2',
-    ];
-
-    if PART == PART_TWO {
-        cards = [
-            'A', 'K', 'Q', 'T', '9', '8', '7', '6', '5', '4', '3', '2', 'J',
-        ];
-    };
-
-    let mut a_type = Types::HighCard;
-    let mut b_type = Types::HighCard;
-
-    for card in cards {
-        let a_count = a.0.matches(card).count();
-        let b_count = b.0.matches(card).count();
-
-        set_type!(a_type, a_count);
-        set_type!(b_type, b_count);
-    }
-
-    if PART == PART_TWO {
-        let a_count = a.0.matches('J').count();
-        let b_count = b.0.matches('J').count();
-
-        use_jokers!(a_type, a_count);
-        use_jokers!(b_type, b_count);
-    }
-
-    let mut order = a_type.cmp(&b_type);
-
-    if order == Ordering::Equal {
-        'outer: for (a_c, b_c) in a.0.chars().zip(b.0.chars()) {
-            if a_c == b_c {
-                continue;
-            }
-
-            for card in cards {
-                if card == a_c {
-                    order = Ordering::Greater;
-                    break 'outer;
-                } else if card == b_c {
-                    order = Ordering::Less;
-                    break 'outer;
+    match Types::cmp(a_type, b_type) {
+        Ordering::Equal => Iterator::zip(a.chars(), b.chars())
+            .filter(|(a_ch, b_ch)| a_ch != b_ch)
+            .map(|(a, b)| map_char!(a, b))
+            .map(|(mut a_ch, mut b_ch)| {
+                if PART == PART_TWO {
+                    if a_ch == 'A' {
+                        a_ch = '1';
+                    } else if b_ch == 'A' {
+                        b_ch = '1';
+                    }
                 }
-            }
-        }
-    }
 
-    order
+                a_ch.cmp(&b_ch)
+            })
+            .next()
+            .unwrap_or(Ordering::Equal),
+        ord => ord,
+    }
 }
 
 pub fn part_1(input: impl AsRef<str>) -> u32 {
     input
         .as_ref()
         .lines()
-        .filter_map(|line| line.split_whitespace().next_tuple::<(&str, &str)>())
-        .filter_map(|(hand, bid)| bid.parse::<u32>().ok().map(|bid| (hand, bid)))
+        .filter_map(map_hand::<PART_ONE>)
         .sorted_by(sort_hands::<PART_ONE>)
         .enumerate()
-        .fold(0_u32, |acc, (rank, (_, bid))| acc + bid * (rank + 1) as u32)
+        .fold(0_u32, |acc, (rank, (_, bid, _))| {
+            acc + bid * (rank + 1) as u32
+        })
 }
 
 pub fn part_2(input: impl AsRef<str>) -> u32 {
     input
         .as_ref()
         .lines()
-        .filter_map(|line| line.split_whitespace().next_tuple::<(&str, &str)>())
-        .filter_map(|(hand, bid)| bid.parse::<u32>().ok().map(|bid| (hand, bid)))
+        .filter_map(map_hand::<PART_TWO>)
         .sorted_by(sort_hands::<PART_TWO>)
         .enumerate()
-        .fold(0_u32, |acc, (rank, (_, bid))| acc + bid * (rank + 1) as u32)
+        .fold(0_u32, |acc, (rank, (_, bid, _))| {
+            acc + bid * (rank + 1) as u32
+        })
 }
 
 #[cfg(test)]
