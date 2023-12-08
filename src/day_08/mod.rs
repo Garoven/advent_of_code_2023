@@ -81,10 +81,10 @@ pub fn part_2(input: impl AsRef<str>) -> u64 {
 mod tests {
     use super::*;
 
-    const INPUT: &str = include_str!("./test.txt");
-
     #[test]
     fn part_1_ok() {
+        const INPUT: &str = include_str!("./test_1.txt");
+
         let result = part_1(INPUT);
         let expected = 6;
 
@@ -93,8 +93,10 @@ mod tests {
 
     #[test]
     fn part_2_ok() {
+        const INPUT: &str = include_str!("./test_2.txt");
+
         let result = part_2(INPUT);
-        let expected = 0;
+        let expected = 6;
 
         assert_eq!(expected, result);
     }
