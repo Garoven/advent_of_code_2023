@@ -1,67 +1,61 @@
 pub fn part_1(input: impl AsRef<str>) -> u32 {
-    let f = |l: &str| {
-        let mut it = l.chars().filter_map(|c| c.to_digit(10));
+    input.as_ref().lines().fold(0, |acc, line| {
+        let a = line
+            .chars()
+            .find_map(|c| c.to_digit(10))
+            .expect("Invalid input");
+        let b = line
+            .chars()
+            .rev()
+            .find_map(|c| c.to_digit(10))
+            .expect("Invalid input");
 
-        let a = it.next()?;
-        let b = it.last().unwrap_or(a);
-
-        Some(a * 10 + b)
-    };
-
-    input.as_ref().lines().filter_map(f).sum()
+        acc + (a * 10 + b)
+    })
 }
 
 pub fn part_2(input: impl AsRef<str>) -> u32 {
-    let mut s = String::new();
-    let mut rs = String::new();
-
-    let f = |l: &str| {
-        let a = l.chars().find_map(|c| match c.to_digit(10) {
-            d @ Some(_) => d,
-            None => {
-                s.push(c);
-                word_to_digit(&mut s)
-            }
-        })?;
-
-        s.clear();
-        let b = l.chars().rev().find_map(|c| match c.to_digit(10) {
-            d @ Some(_) => d,
-            None => {
-                s.push(c);
-                rs.clear();
-                rs.extend(s.chars().rev());
-                word_to_digit(&mut rs).map(|d| {
-                    s.clear();
-
-                    d
+    input.as_ref().lines().fold(0, |acc, line| {
+        let mut end = 0;
+        let a = line
+            .chars()
+            .find_map(|c| {
+                c.to_digit(10).or_else(|| {
+                    end += 1;
+                    word_to_digit(&line[0..end])
                 })
-            }
-        })?;
+            })
+            .expect("Invalid input");
 
-        Some(a * 10 + b)
-    };
+        let mut start = line.len();
+        let b = line
+            .chars()
+            .rev()
+            .find_map(|c| {
+                c.to_digit(10).or_else(|| {
+                    start -= 1;
+                    word_to_digit(&line[start..line.len()])
+                })
+            })
+            .expect("Invalid input");
 
-    input.as_ref().lines().filter_map(f).sum()
+        acc + (a * 10 + b)
+    })
 }
 
-fn word_to_digit(s: &mut String) -> Option<u32> {
+fn word_to_digit(slice: &str) -> Option<u32> {
     const WORDS: [&str; 9] = [
         "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
     ];
 
-    if s.len() < 3 {
+    if slice.len() < 3 {
         return None;
     }
 
-    for (i, w) in WORDS.iter().enumerate() {
-        if s.contains(w) {
-            s.clear();
-            return Some((i + 1) as u32);
-        }
-    }
-
-    None
+    WORDS
+        .iter()
+        .position(|w| slice.contains(*w))
+        .map(|n| (n + 1) as u32)
 }
 
 #[cfg(test)]
