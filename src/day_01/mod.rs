@@ -1,3 +1,5 @@
+use rayon::{prelude::ParallelIterator, str::ParallelString};
+
 pub fn part_1(input: impl AsRef<str>) -> u32 {
     input.as_ref().lines().fold(0, |acc, line| {
         let a = line
@@ -15,32 +17,39 @@ pub fn part_1(input: impl AsRef<str>) -> u32 {
 }
 
 pub fn part_2(input: impl AsRef<str>) -> u32 {
-    input.as_ref().lines().fold(0, |acc, line| {
-        let mut end = 0;
-        let a = line
-            .chars()
-            .find_map(|c| {
-                c.to_digit(10).or_else(|| {
-                    end += 1;
-                    word_to_digit(&line[0..end])
-                })
-            })
-            .expect("Invalid input");
+    input
+        .as_ref()
+        .par_lines()
+        .fold(
+            || 0,
+            |acc, line| {
+                let mut end = 0;
+                let a = line
+                    .chars()
+                    .find_map(|c| {
+                        c.to_digit(10).or_else(|| {
+                            end += 1;
+                            word_to_digit(&line[0..end])
+                        })
+                    })
+                    .expect("Invalid input");
 
-        let mut start = line.len();
-        let b = line
-            .chars()
-            .rev()
-            .find_map(|c| {
-                c.to_digit(10).or_else(|| {
-                    start -= 1;
-                    word_to_digit(&line[start..line.len()])
-                })
-            })
-            .expect("Invalid input");
+                let mut start = line.len();
+                let b = line
+                    .chars()
+                    .rev()
+                    .find_map(|c| {
+                        c.to_digit(10).or_else(|| {
+                            start -= 1;
+                            word_to_digit(&line[start..line.len()])
+                        })
+                    })
+                    .expect("Invalid input");
 
-        acc + (a * 10 + b)
-    })
+                acc + (a * 10 + b)
+            },
+        )
+        .sum()
 }
 
 fn word_to_digit(slice: &str) -> Option<u32> {
