@@ -38,7 +38,8 @@ fn main() -> advent_of_code_2023::Result<()> {
         8 => print_day!(day_08),
         9 => print_day!(day_09),
         10 => print_day!(day_10),
-        11..=25 => unimplemented!(),
+        11 => print_day!(day_11),
+        12..=25 => unimplemented!(),
         _ => unreachable!(),
     };
     println!("Elapsed: {:?}", ts.elapsed());
