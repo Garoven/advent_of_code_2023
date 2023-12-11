@@ -1,6 +1,3 @@
-use clap::Parser;
-use std::fmt::Debug;
-
 use advent_of_code_2023::*;
 
 #[derive(Debug, clap::Parser)]
@@ -13,7 +10,7 @@ struct Args {
 }
 
 fn main() -> advent_of_code_2023::Result<()> {
-    let args = Args::parse();
+    let args: Args = clap::Parser::parse();
     let input = &std::fs::read_to_string(args.input)?;
 
     macro_rules! print_day {

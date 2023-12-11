@@ -5,12 +5,9 @@ args = ["run", "--", "-i", "input.txt", "-d", "${@}"]
 [tasks.dev]
 install_crate = "cargo-watch"
 command = "cargo"
-args = ["watch", "-q", "-c", "-w", "src/", "-x", "test"]
+args = ["watch", "-q", "-c", "-w", "src/", "-x", "nextest run ${@}"]
 
 [tasks.test]
 install_crate = "cargo-nextest"
 command = "cargo"
 args = ["nextest", "run", "${@}"]
-
-[config]
-reduce_output = true
