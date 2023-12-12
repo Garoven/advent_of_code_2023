@@ -6,7 +6,7 @@ use rayon::{prelude::ParallelIterator, str::ParallelString};
 const PART_ONE: usize = 1;
 const PART_TWO: usize = 5;
 
-fn _solve<'a>(
+fn solve<'a>(
     springs: &'a str,
     groups: &[usize],
     cache: &mut HashMap<(&'a str, usize), u64>,
@@ -20,6 +20,7 @@ fn _solve<'a>(
     if springs.is_empty() {
         return 0;
     }
+
     if let Some(count) = cache.get(&(springs, groups.len())) {
         return *count;
     }
@@ -27,14 +28,14 @@ fn _solve<'a>(
     let mut count = 0;
 
     if !springs[0..1].contains('#') {
-        count += _solve(&springs[1..], groups, cache);
+        count += solve(&springs[1..], groups, cache);
     }
 
     if groups[0] < springs.len()
         && !springs[..groups[0]].contains('.')
         && !springs[groups[0]..=groups[0]].contains('#')
     {
-        count += _solve(&springs[groups[0] + 1..], &groups[1..], cache);
+        count += solve(&springs[groups[0] + 1..], &groups[1..], cache);
     }
 
     cache.insert((springs, groups.len()), count);
@@ -42,7 +43,7 @@ fn _solve<'a>(
     count
 }
 
-fn solve<const PART: usize>(line: &str) -> u64 {
+fn both<const PART: usize>(line: &str) -> u64 {
     let (springs, groups) = line
         .split_whitespace()
         .next_tuple::<(&str, &str)>()
@@ -57,21 +58,17 @@ fn solve<const PART: usize>(line: &str) -> u64 {
     let mut springs = (springs.to_owned() + "?").repeat(PART);
     springs.replace_range(springs.len() - 1..springs.len(), ".");
 
-    _solve(&springs, &groups, &mut HashMap::new())
-}
-
-fn both<const PART: usize, T: AsRef<str>>(input: T) -> u64 {
-    input.as_ref().par_lines().map(solve::<PART>).sum()
+    solve(&springs, &groups, &mut HashMap::new())
 }
 
 #[inline]
 pub fn part_1<T: AsRef<str>>(input: T) -> u64 {
-    both::<PART_ONE, T>(input)
+    input.as_ref().par_lines().map(both::<PART_ONE>).sum()
 }
 
 #[inline]
 pub fn part_2<T: AsRef<str>>(input: T) -> u64 {
-    both::<PART_TWO, T>(input)
+    input.as_ref().par_lines().map(both::<PART_TWO>).sum()
 }
 
 #[cfg(test)]
