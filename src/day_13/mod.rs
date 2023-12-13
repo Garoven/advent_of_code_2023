@@ -4,34 +4,32 @@ const PART_ONE: usize = 1;
 const PART_TWO: usize = 2;
 
 fn calc<const PART: usize, T: AsRef<str>>(slice: &[T]) -> Option<u64> {
-    (0..slice.len() - 1)
-        .find_map(|line| {
-            let mut count = 0;
-            let conditon = (0..=line).all(|offset| {
-                if offset + line + 1 >= slice.len() {
-                    return true;
-                }
-
-                let a = slice[line - offset].as_ref();
-                let b = (slice[line + offset + 1]).as_ref();
-
-                if PART == 2 {
-                    count += a.chars().zip(b.chars()).filter(|(a, b)| a != b).count();
-                }
-
-                match PART {
-                    1 => a == b,
-                    _ => true,
-                }
-            });
-
-            if PART == 1 && conditon || PART == 2 && count == 1 {
-                Some(line + 1)
-            } else {
-                None
+    (0..slice.len() - 1).find_map(|line| {
+        let mut count = 0;
+        let conditon = (0..=line).all(|offset| {
+            if offset + line + 1 >= slice.len() {
+                return true;
             }
-        })
-        .map(|val| val as u64)
+
+            let a = slice[line - offset].as_ref();
+            let b = (slice[line + offset + 1]).as_ref();
+
+            if PART == 2 {
+                count += a.chars().zip(b.chars()).filter(|(a, b)| a != b).count();
+            }
+
+            match PART {
+                1 => a == b,
+                _ => true,
+            }
+        });
+
+        if PART == 1 && conditon || PART == 2 && count == 1 {
+            Some((line + 1) as u64)
+        } else {
+            None
+        }
+    })
 }
 
 fn both<const PART: usize, T: AsRef<str>>(input: T) -> u64 {
@@ -40,9 +38,8 @@ fn both<const PART: usize, T: AsRef<str>>(input: T) -> u64 {
         .lines()
         .group_by(|line| !line.is_empty())
         .into_iter()
-        .map(|a| a.1.collect_vec())
-        .filter(|v| !v[0].is_empty())
-        .map(|rows| {
+        .filter_map(|a| if a.0 { Some(a.1.collect_vec()) } else { None })
+        .fold(0, |acc, rows| {
             calc::<PART, _>(&rows).map_or_else(
                 || {
                     let cols = (0..rows[0].len())
@@ -52,9 +49,8 @@ fn both<const PART: usize, T: AsRef<str>>(input: T) -> u64 {
                     calc::<PART, _>(&cols).unwrap_or_default()
                 },
                 |val| val * 100,
-            )
+            ) + acc
         })
-        .sum()
 }
 
 pub fn part_1<T: AsRef<str>>(input: T) -> u64 {
